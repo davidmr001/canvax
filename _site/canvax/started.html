@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name ="viewport" content ="initial-scale=1, maximum-scale=3, minimum-scale=1, minimal-ui">
+  <meta name="apple-mobile-web-app-title" content="THX">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <meta name="description" content="" /> <!-- 页面描述 -->
+  <meta name="keywords" content=""/> <!-- 页面关键词 -->
+
+  <title>Canvax五分钟入门 -  THX</title>
+<link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/thx/cube/1.2.0/??cube.css,type.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/syntax/github.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/base.css">
+</head>
+<body bx-app class="skin-canvax ">
+  
+
+<div id="page">
+  
+
+<div class="settings">
+<!-- 文字大小 begin -->
+    <label class="type-set-label set-first set-font-small" data-font-size="small" title="较小">
+        <span class="bd">
+            <span class="set-title">较小</span><span class="set-icon set-font-small">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="middle" title="默认">
+        <span class="bd">
+            <span class="set-title">默认</span><span class="set-icon set-font-middle">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="large" title="较大">
+        <span class="bd">
+            <span class="set-title">较大</span><span class="set-icon set-font-large">A</span>
+        </span>
+    </label>
+<!-- 文字大小 end -->
+
+<!-- 昼夜模式 begin -->
+    <label class="type-set-label set-last set-night" data-class="night" title="夜晚模式">
+        <span class="bd">
+            <span class="set-title">夜晚模式</span><i class="set-icon iconfont">&#452;</i>
+        </span>
+    </label>
+<!-- 昼夜模式 end -->
+</div>
+  <div id="content">
+    <div id="content-wrap">
+      <script type="text/x-template" id="J_tocTpl">
+
+<div class="stoc type-toc">
+  <label id="J_tocToggler"><h2><i class="iconfont">&#390;</i>目录</h2></label>
+  {{#each tree}}
+    <ol>
+    {{#each children}}
+      <li class="folded"><a href="#{{id}}" class="j-entry level2">{{text}}</a>
+        {{#if children.length !== 0}}
+        <ol>
+        {{#each children}}
+          <li><a href="#{{id}}" class="j-entry level3">{{text}}</a>
+        {{/each}}
+        </ol>
+        {{/if}}
+      </li>
+    {{/each}}
+    </ol>
+  {{/each}}
+</div>
+
+</script>
+<div id="stoc" bx-name="mosaics/stoc" bx-tpl="#J_tocTpl" bx-config="{ essay: 'article' }"></div>
+
+      <article class="type">
+        <h1>Canvax五分钟入门</h1>
+        <div class="authors">
+          
+        </div>
+        <h2 id="canvax使用5分钟入门：">Canvax使用5分钟入门：</h2><p>canvax重度依赖underscore.js，可以去其underscore.js官网自行下载使用，也可以使用canvax提供的<a href="http://g.tbcdn.cn/thx/canvax/library/underscore.js">cdn版本</a>。 如果你未引用underscore，canvax则会自动加载一份预设的underscore文件。</p>
+<p>canvax采用AMD模块格式编写，如果你的项目使用的是seajs or kissy，可以采用我的<a href="https://github.com/nickli/defineadaptation">通用模块解决方案</a>做无缝兼容。</p>
+<h3 id="环境准备">环境准备</h3><p>加载require.js，并且配置好canvax的包地址。</p>
+<div class="highlight"><pre><code class="xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">title</span>&gt;</span>Canvax<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+    <span class="comment">&lt;!-- 这里用requirejs来做模块加载器 --&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"http://requirejs.org/docs/release/2.1.20/minified/require.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+        <span class="comment">//这里已我的cdn版本2015.08.12为例</span>
+        <span class="keyword">var</span> canvaxUrl     = <span class="string">"http://g.tbcdn.cn/thx/canvax/2015.08.12/"</span>;
+        requirejs.config({ paths: {
+            canvax : canvaxUrl    
+        } });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span></code></pre></div><h3 id="为canvax准备一个具备高宽的dom容器">为Canvax准备一个具备高宽的DOM容器</h3><div class="highlight"><pre><code class="xml"><span class="doctype">&lt;!DOCTYPE html&gt;</span>
+<span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">title</span>&gt;</span>Canvax<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+    <span class="comment">&lt;!-- 这里用requirejs来做模块加载器 --&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"http://requirejs.org/docs/release/2.1.20/minified/require.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+        <span class="comment">//这里已我的cdn版本2015.08.12为例</span>
+        <span class="keyword">var</span> canvaxUrl     = <span class="string">"http://g.tbcdn.cn/thx/canvax/2015.08.12/"</span>;
+        requirejs.config({ paths: {
+            canvax : canvaxUrl    
+        } });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="comment">&lt;!-- 为Canvax准备一个具备大小（宽高）的Dom --&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"canvaxTest"</span> <span class="attribute">style</span>=<span class="value">"width:600px;height:300px;"</span>&gt;</span><span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span></code></pre></div><h3 id="开始绘图，画一个圆">开始绘图，画一个圆</h3><p>效果如下：</p>
+<script src="http://requirejs.org/docs/release/2.1.20/minified/require.js"></script>
+<script>
+    //这里已我的cdn版本2015.08.12为例
+    var canvaxUrl     = "http://g.tbcdn.cn/thx/canvax/2015.08.12/canvax";
+    requirejs.config({ paths: {
+        canvax : canvaxUrl    
+    } });
+</script>
+<div id="canvaxTest" style="width:600px;height:200px;"></div>
+<script>
+    require(["canvax/index" , "canvax/shape/Circle"] , function( Canvax , Circle ){
+        //在dom树中准备一个具备Layout的容器节点
+        var el = document.getElementById("canvaxTest");
+
+        //用这个具备Layout的节点来创建Canvax项目对象
+        canvax = new Canvax({
+          id : "canvax", //注意，Canvax的世界里面，所有的id都是可选的，但是不能重复。
+          el : el 
+        });
+
+        //然后就是创建第一个舞台对象Stage,在canvax的世界里，一个Stage就对应着一个canvas
+        stage = new Canvax.Display.Stage({ });
+
+        //ok，然后把stage添加到Canvax中管理。然后在stage中添加具体的图形元素
+        canvax.addChild(stage);
+
+        //好吧，我们来创建一个圆形，然后添加到stage中，然后给这个圆形添加点事件看看
+        var circle = new Circle({
+          context : {
+            x:100,
+            y:100,
+            r : 50,
+            fillStyle   : 'rgba(220, 20, 60, 0.5)',          // rgba supported
+            strokeStyle : 'rgba(220, 20, 60, 0.9)',
+            lineWidth   : 2
+          }
+        });
+
+        //ok然后把这个画好了的圆，添加到舞台中去
+        stage.addChild(circle);
+
+    });
+</script>
+
+
+<p>完整代码：</p>
+<div class="highlight"><pre><code class="javascript">&lt;!DOCTYPE html&gt;
+<span class="xml"><span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">title</span>&gt;</span>Canvax<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+    <span class="comment">&lt;!-- 这里用requirejs来做模块加载器 --&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"http://requirejs.org/docs/release/2.1.20/minified/require.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+        <span class="comment">//这里已我的cdn版本2015.08.12为例</span>
+        <span class="keyword">var</span> canvaxUrl     = <span class="string">"http://g.tbcdn.cn/thx/canvax/2015.08.12/canvax"</span>;
+        requirejs.config({ paths: {
+            canvax : canvaxUrl    
+        } });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="comment">&lt;!-- 为Canvax准备一个具备大小（宽高）的Dom --&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"canvaxTest"</span> <span class="attribute">style</span>=<span class="value">"width:600px;height:300px;"</span>&gt;</span><span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+        require([<span class="string">"canvax/index"</span> , <span class="string">"canvax/shape/Circle"</span>] , <span class="function"><span class="keyword">function</span><span class="params">( Canvax , Circle )</span>{</span>
+            <span class="comment">//在dom树中准备一个具备Layout的容器节点</span>
+            <span class="keyword">var</span> el = document.getElementById(<span class="string">"canvaxTest"</span>);
+
+            <span class="comment">//用这个具备Layout的节点来创建Canvax项目对象</span>
+            canvax = <span class="keyword">new</span> Canvax({
+              id : <span class="string">"canvax"</span>, <span class="comment">//注意，Canvax的世界里面，所有的id都是可选的，但是不能重复。</span>
+              el : el 
+            });
+
+            <span class="comment">//然后就是创建第一个舞台对象Stage,在canvax的世界里，一个Stage就对应着一个canvas</span>
+            stage = <span class="keyword">new</span> Canvax.Display.Stage({ });
+
+            <span class="comment">//ok，然后把stage添加到Canvax中管理。然后在stage中添加具体的图形元素</span>
+            canvax.addChild(stage);
+
+            <span class="comment">//好吧，我们来创建一个圆形，然后添加到stage中，然后给这个圆形添加点事件看看</span>
+            <span class="keyword">var</span> circle = <span class="keyword">new</span> Circle({
+              context : {
+                x:<span class="number">100</span>,
+                y:<span class="number">100</span>,
+                r : <span class="number">50</span>,
+                fillStyle   : <span class="string">'rgba(220, 20, 60, 0.5)'</span>,          <span class="comment">// rgba supported</span>
+                strokeStyle : <span class="string">'rgba(220, 20, 60, 0.9)'</span>,
+                lineWidth   : <span class="number">2</span>
+              }
+            });
+
+            <span class="comment">//ok然后把这个画好了的圆，添加到舞台中去</span>
+            stage.addChild(circle);
+
+        });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span></span></code></pre></div>
+      </article>
+      <!-- Duoshuo Comment BEGIN -->
+
+<div class="ds-thread" data-thread-key="/canvax/started.md" data-url="http://thx.alibaba-inc.com/canvax/started.md" data-limit="10"></div>
+<!-- Duoshuo Comment END -->
+      <div id="footer">
+  <address><a href="http://ued.alimama.com">MUX</a> &copy; 2014</address>
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan class='cnzz' id='cnzz_stat_icon_1000167811'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/z_stat.php%3Fid%3D1000167811%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</div>
+    </div>
+  </div>
+  <div id="nav">
+    <a href="javascript:void(0)" class="toggler" id="J_toggler">
+      <i class="iconfont">&#271;</i>
+      <span class="label">导航</span>
+    </a>
+    <h1 class="logo"><a href="http://thx.github.io/canvax">
+       <i class="iconlogo dib">&#xe600;</i>
+       <span class="logo-text dib">Canvax</span>
+    </h1>
+    <ul class="menu">
+    
+
+    <li>
+        <a href="http://thx.alibaba-inc.com" target="_blank" class="entry">
+          更多THX前端工具
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/canvax/canvax" target="_blank" class="entry">
+          <i class="iconfont">&#61464;</i> Github
+        </a>
+    </li>
+    <li>
+        <a href="./doc.html" target="_blank" class="entry">
+          文档
+        </a>
+    </li>
+    <!--
+    <li>
+        <a href="./example.html" target="_blank" class="entry">
+          实例中心
+        </a>
+        </li>
+    -->
+    <li>
+        <a href="./started.html" target="_blank" class="entry">
+          5分钟入门
+        </a>
+    </li>
+    </ul>
+  </div>
+</div>
+
+  <script src="http://g.tbcdn.cn/??kissy/k/1.4.0/seed-min.js,thx/brix-core/3.4.6/brix-min.js"></script>
+
+<script src="/canvax/assets/post.js"></script>
+
+</body>
+</html>
