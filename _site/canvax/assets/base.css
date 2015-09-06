@@ -1255,7 +1255,7 @@ h4:hover .anchor-link {
 
 .type h2 {
     border-bottom:1px solid #d3d5d8!important;
-    margin-top:40px;
+    margin-top:80px;
 }
 .type h3, .type h4 {
     margin-top:40px;
@@ -1284,5 +1284,5 @@ h4:hover .anchor-link {
     border-bottom : 1px solid #d3d5d8!important
 }
 .type h3 {
-    margin-top:100px;
+    margin-top:40px;
 }
