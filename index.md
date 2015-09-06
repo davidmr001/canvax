@@ -1,0 +1,19 @@
+---
+layout: post
+title: Canvax
+---
+
+## 关于Canvax
+
+简单高效易用的canvas开发框架。
+
+采用Flash AS3相同的模式来对绘制元素进行抽象，采用OO的模式方便的管理绘制在Canvas上面的每个元素和进行事件绑定和检测触发，解决Canvas开发面对无状态的Canvas画布无从下手的尴尬；
+
+独树一帜的心跳包主动渲染机制（不再需要定时器轮询）提升渲染性能；
+
+在IE9-中使用FlashCanvas解决Canvas的兼容问题。
+
+
+
+
+
