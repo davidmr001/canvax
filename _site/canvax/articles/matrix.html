@@ -1,0 +1,257 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name ="viewport" content ="initial-scale=1, maximum-scale=3, minimum-scale=1, minimal-ui">
+  <meta name="apple-mobile-web-app-title" content="THX">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <meta name="description" content="" /> <!-- 页面描述 -->
+  <meta name="keywords" content=""/> <!-- 页面关键词 -->
+
+  <title>Canvax中的Matrix的应用 -  THX</title>
+<link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/thx/cube/1.2.0/??cube.css,type.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/syntax/github.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/base.css">
+
+</head>
+<body bx-app class="skin-canvax ">
+  
+
+<div id="page">
+  
+
+<div class="settings">
+<!-- 文字大小 begin -->
+    <label class="type-set-label set-first set-font-small" data-font-size="small" title="较小">
+        <span class="bd">
+            <span class="set-title">较小</span><span class="set-icon set-font-small">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="middle" title="默认">
+        <span class="bd">
+            <span class="set-title">默认</span><span class="set-icon set-font-middle">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="large" title="较大">
+        <span class="bd">
+            <span class="set-title">较大</span><span class="set-icon set-font-large">A</span>
+        </span>
+    </label>
+<!-- 文字大小 end -->
+
+<!-- 昼夜模式 begin -->
+    <label class="type-set-label set-last set-night" data-class="night" title="夜晚模式">
+        <span class="bd">
+            <span class="set-title">夜晚模式</span><i class="set-icon iconfont">&#452;</i>
+        </span>
+    </label>
+<!-- 昼夜模式 end -->
+</div>
+  <div id="content">
+    <div id="content-wrap">
+      <script type="text/x-template" id="J_tocTpl">
+
+<div class="stoc type-toc">
+  <label id="J_tocToggler"><h2><i class="iconfont">&#390;</i>目录</h2></label>
+  {{#each tree}}
+    <ol>
+    {{#each children}}
+      <li class="folded"><a href="#{{id}}" class="j-entry level2">{{text}}</a>
+        {{#if children.length !== 0}}
+        <ol>
+        {{#each children}}
+          <li><a href="#{{id}}" class="j-entry level3">{{text}}</a>
+        {{/each}}
+        </ol>
+        {{/if}}
+      </li>
+    {{/each}}
+    </ol>
+  {{/each}}
+</div>
+
+</script>
+<div id="stoc" bx-name="mosaics/stoc" bx-tpl="#J_tocTpl" bx-config="{ essay: 'article' }"></div>
+
+      <article class="type">
+        <h1>Canvax中的Matrix的应用</h1>
+        <div class="authors">
+          
+        </div>
+        <p>当对象树结构确定了后，接下来就是要面对如何实现元素的渲染位置，旋转，缩放等等一系列的形变问题了，在dom里我们熟悉的position:absolute||relative||fixed来配合left,top,right,bottom等属性来实现渲染位置，scale,rotate等css属性来实现缩放和旋转，那么在Canvax的抽象对象树里，我们如何来实现呢？</p>
+<h2 id="矩阵与形变">矩阵与形变</h2><p>前端工程师的日常工作中还是比较少直接接触到一些数学方面的内容，所以毕业以后基本在学校学的那些数学知识基本还给老师了，但是在涉及到简单的图形开发领域，多少就会不可避免的接触到一些基本的数学内容，比如<code>矩阵</code>，<code>向量</code>，<code>三角函数</code>，<code>贝塞尔</code>等等。这些内容其实都在高中或者大学的线性代数里学到过，只是这些知识在读书的时候学起来很抽象很枯燥无味，所以很多基本一毕业就还给了老师，我也是，后面弄Canvax，需要用到这些知识，当这些以前读书时候学起来很无聊不知有啥用的东西在代码里用的到而且是结合五颜六色丰富多彩图形反馈出来的时候，本来抽象不好理解的东西一下具象起来才发现他们的魅力... 书到用时方恨少，这个时候是最深刻的体会拉。</p>
+<p>那么回到正题上来，我们来说说canvas中的Matrix（矩阵）？</p>
+<p>要战胜对手，首先要在战略上藐视对手，所以，一开始千万不要被这个名字吓住了。</p>
+<p><img src="./assets/jinkong.jpeg"  /></p>
+<p>如果你有兴趣从数学角度去了解矩阵的话，可以移步这里<a href="https://www.douban.com/group/topic/14452729/">理解矩阵Matrix （数学）</a>，如果只想简单的从canvas对Matrix支持的角度来了解的可以继续往下看。</p>
+<p>矩阵的本质是运动的描述，运动就会有形变，形变又可以简单的分为斜拉(skew)，缩放(scale)，旋转(rotate)以及位移(translate)等等。</p>
+<p><img src="./assets/matrix-skew-scale-rotate-translate.gif" /></p>
+<h2 id="canvas中的形变函数">Canvas中的形变函数</h2><p>canvas2D中已经给我们实现了几个基本的形变函数。</p>
+<p>1，我们先介绍 translate 方法，它用来移动 canvas 和它的原点到一个不同的位置。</p>
+<div class="highlight"><pre><code class="javascript">translate(x, y)</code></pre></div><p>translate 方法接受两个参数。x 是左右偏移量，y 是上下偏移量，如下图所示。</p>
+<p><img src="./assets/Canvas_grid_translate.png" /></p>
+<p>2，第二个介绍 rotate 方法，它用于以原点为中心旋转 canvas。</p>
+<div class="highlight"><pre><code class="javascript">rotate(angle)</code></pre></div><p>这个方法只接受一个参数：旋转的角度(angle)，它是顺时针方向的，以弧度为单位的值。旋转的中心点始终是 canvas 的原点，如果要改变它，我们需要用到 translate 方法。</p>
+<p><img src="./assets/Canvas_grid_rotate.png" /></p>
+<p>3，接着是缩放。我们用它来增减图形在 canvas 中的像素数目，对形状，位图进行缩小或者放大。</p>
+<div class="highlight"><pre><code class="javascript">scale(x, y)</code></pre></div><p>scale 方法接受两个参数。x,y 分别是横轴和纵轴的缩放因子，它们都必须是正值。值比 1.0 小表示缩小，比 1.0 大则表示放大，值为 1.0 时什么效果都没有。
+默认情况下，canvas 的 1 单位就是 1 个像素。举例说，如果我们设置缩放因子是 0.5，1 个单位就变成对应 0.5 个像素，这样绘制出来的形状就会是原先的一半。同理，设置为 2.0 时，1 个单位就对应变成了 2 像素，绘制的结果就是图形放大了 2 倍。</p>
+<h2 id="transform">transform</h2><p>然后你会发现，canvas提供的这三个形变函数，远远不够啊，最基本的skew形变怎么办，canvas可没有提供skew方法啊，那就更加别说其他复杂的形变效果(比如镜像反转)啦，肿么办？别着急，主角该登场了<code>transform</code>。</p>
+<p>transform，是相对于translate，rotate，scale这三个基本的方法更加底层的一个解决方案，他是直接来操作矩阵，所以理论上面它效率要比上述方法要更加高些。</p>
+<div class="highlight"><pre><code class="javascript">ctx.transform(a,b,c,d,e,f);</code></pre></div><p>transform必须接受6个参数，但是我们为什么说它是直接操作矩阵的呢，这就是6个普通的参数而已嘛？而且，六个参数，如何记得住他们的意义啊。其实，这六个参数就是用来描述着一个矩阵的信息。它对应的矩阵就是：</p>
+<p><img src="./assets/transforms-matrix3.gif" /></p>
+<p>所有的值都自己默认的单位值，比如数字的默认单位值就是0，那么默认的单位矩阵是什么样子的呢，或者可以这样理解一个单位矩阵，它就是一个图形,在没有缩放（没有缩放就是1）,旋转（没有旋转就是0）,位移（没有位移也是0）的时候,对应的矩阵就应该是这样的：</p>
+<p><img src="./assets/transforms-matrix3-def.gif" /></p>
+<p>其中a位置和d位置的1，就分别代表了x轴方向和y轴方向的缩放，b和c位置的0分别代表的是x轴方向和y轴方向的斜切，最后e和f位置的0分表代表x和y轴方向的位移。</p>
+<p>那么接下来我们要把这个图形移动到x=100,y=100的位置，就是transform(1,0,0,1,100,100)，从矩阵计算过程来看就是这样的：</p>
+<p><img src="./assets/matrix-comp.gif" /></p>
+<p>那么也就是说，用前面说的canvas自己封装的接口ctx.translate(100,100)，和ctx.transform(1,0,0,1,100,100)是一样的，translate的底层其实也是对矩阵的操作。同时，虽然直接用transform稍微麻烦了点，但是现在你可以完成比如skew，镜像翻转等等一系列的形变了。</p>
+<h2 id="settransform">setTransform</h2><p>既然说到了transform，必须要提一下setTransform方法—-这个方法一看就是和transform一样的啦.不过他的作用是直接把矩阵设为你传给他的值,会清空前面所有的transform造成的效果;也就是说,transform的每次变化,都是在以前的矩阵上进行的(如果有的话).</p>
+<p>比如我不知道之前我的canvas是否有过translate,rotate,skew等操作,我也没有save过,但我现在要操作canvas,画个矩形,如果之前有变化过,那么我画出来肯定就不对了,那么,我怎么才能保证我画出来的就是我想要的呢?没错就是setTransform。</p>
+<h2 id="canvax中的使用">Canvax中的使用</h2><p>好啦，废话那么多，希望你能懂我在说什么，我们接下来就要正经的说说Canvax里是如何应用的。</p>
+<p>Canvax中完全摈弃了canvas提供的形变方法（吃力没讨好），直接所有的形变都采用transform来实现，比如现在有这么个场景，一个图形要位移到{x:100,y:100} ，旋转90angle， x轴方向缩放2倍，采用canvas提供的那些api的方案会是这样：</p>
+<div class="highlight"><pre><code class="javascript"><span class="comment">//包行x,y,rotate,scale等信息</span>
+<span class="keyword">var</span> opt = {
+    x:<span class="number">100</span>,y:<span class="number">100</span>,rotate:<span class="number">90</span>,
+    scale:{
+        x : <span class="number">2</span>,y:<span class="number">2</span>
+    }
+}; 
+
+
+<span class="keyword">if</span>( opt.x || opt.y ){
+    ctx.translate( opt.x , opt.y );
+}
+<span class="keyword">if</span>( opt.rotate ){
+    ctx.rotate( opt.rotate );
+}
+<span class="keyword">if</span>( opt.scale ){
+    ctx.scale( opt.scale.x , opt.scale.y )
+}</code></pre></div><p>这样看上去好像很合理，但是Canvax中全部采用transform后是这样(下面的方法在Canvax/display/DisplayObject模块中)：</p>
+<div class="highlight"><pre><code class="javascript">_updateTransform : <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">var</span> _transform = <span class="keyword">new</span> Matrix(); <span class="comment">//我们新建一个Matrix对象</span>
+    _transform.identity();  <span class="comment">//把这个对象初始化为一个默认的矩阵单元值</span>
+    <span class="keyword">var</span> ctx = <span class="keyword">this</span>.context;
+    <span class="comment">//你会看到后续的所有形变都是直接操作这个矩阵，而不再去操作canvas.context2D</span>
+    <span class="comment">//是否需要Transform</span>
+    <span class="keyword">if</span>(ctx.scaleX !== <span class="number">1</span> || ctx.scaleY !==<span class="number">1</span> ){
+        <span class="comment">//如果有缩放</span>
+        <span class="comment">//缩放的原点坐标</span>
+        <span class="keyword">var</span> origin = <span class="keyword">new</span> Point(ctx.scaleOrigin);
+        <span class="keyword">if</span>( origin.x || origin.y ){
+            _transform.translate( -origin.x , -origin.y );
+        }
+        _transform.scale( ctx.scaleX , ctx.scaleY );
+        <span class="keyword">if</span>( origin.x || origin.y ){
+            _transform.translate( origin.x , origin.y );
+        };
+    };
+
+    <span class="keyword">var</span> rotation = ctx.rotation;
+    <span class="keyword">if</span>( rotation ){
+        <span class="comment">//如果有旋转</span>
+        <span class="comment">//旋转的原点坐标</span>
+        <span class="keyword">var</span> origin = <span class="keyword">new</span> Point(ctx.rotateOrigin);
+        <span class="keyword">if</span>( origin.x || origin.y ){
+            _transform.translate( -origin.x , -origin.y );
+        }
+        _transform.rotate( rotation % <span class="number">360</span> * Math.PI/<span class="number">180</span> );
+        <span class="keyword">if</span>( origin.x || origin.y ){
+            _transform.translate( origin.x , origin.y );
+        }
+    };
+
+    <span class="comment">//如果有位移</span>
+    <span class="keyword">var</span> x,y;
+    <span class="keyword">if</span>( <span class="keyword">this</span>.xyToInt ){
+        <span class="keyword">var</span> x = parseInt( ctx.x );<span class="comment">//Math.round(ctx.x);</span>
+        <span class="keyword">var</span> y = parseInt( ctx.y );<span class="comment">//Math.round(ctx.y);</span>
+    } <span class="keyword">else</span> {
+        x = ctx.x;
+        y = ctx.y;
+    };
+
+    <span class="keyword">if</span>( x != <span class="number">0</span> || y != <span class="number">0</span> ){
+        _transform.translate( x , y );
+    };
+    <span class="keyword">this</span>._transform = _transform;
+    <span class="keyword">return</span> _transform;
+}</code></pre></div><p>这样的话，你会发现，所有的形变都是在这个内部创建的矩阵单元上面操作，不会再去直接操作canvas.context2D，然后把最后运算后的矩阵存在DisplayObject的_transform属性上，也就是说每个Canvax元素都会有个_transform来记录自己的所有形变运动信息。在真正render的时候执行</p>
+<div class="highlight"><pre><code class="javascript">_transformHander : <span class="function"><span class="keyword">function</span><span class="params">( ctx )</span>{</span>
+    <span class="keyword">var</span> transForm = <span class="keyword">this</span>._transform;
+    <span class="keyword">if</span>( !transForm ) {
+        transForm = <span class="keyword">this</span>._updateTransform();
+    };
+    <span class="comment">//运用矩阵开始变形</span>
+    ctx.transform.apply( ctx , transForm.toArray() );
+    <span class="comment">//ctx.globalAlpha *= this.context.globalAlpha;</span>
+}</code></pre></div><p>最后，因为我们全部是通过Matrix来实现的，所以我们<code>Canvax/geom/Matrix</code>模块中定义自己实现了目前够用的一些形变函数，包括scale,rotate,translate，有兴趣可以去看看。</p>
+<p>有了前面的这些内容，我们可以完成一次完美的画面渲染，接下来我们要说说Canvax中比较有意思的点，<a href="./heart_beat.html">心跳包主动渲染机制</a>。</p>
+<p>---广告分割线---</p>
+<p>阿里妈妈开源图表库Chartx <a href="http://thx.github.io/chartx/"><a href="http://thx.github.io/chartx/">http://thx.github.io/chartx/</a></a> ，求star</p>
+
+      </article>
+      <!-- Duoshuo Comment BEGIN -->
+
+<div class="ds-thread" data-thread-key="/canvax/articles/matrix.md" data-url="http://thx.alibaba-inc.com/canvax/articles/matrix.md" data-limit="10"></div>
+<!-- Duoshuo Comment END -->
+      <div id="footer">
+  <address><a href="http://ued.alimama.com">MUX</a> &copy; 2014</address>
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan class='cnzz' id='cnzz_stat_icon_1000167811'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/z_stat.php%3Fid%3D1000167811%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</div>
+    </div>
+  </div>
+  <div id="nav">
+    <a href="javascript:void(0)" class="toggler" id="J_toggler">
+      <i class="iconfont">&#271;</i>
+      <span class="label">导航</span>
+    </a>
+    <h1 class="logo"><a href="http://thx.github.io/canvax">
+       <i class="iconlogo dib">&#xe600;</i>
+       <span class="logo-text dib">Canvax</span>
+    </h1>
+    <ul class="menu">
+    
+
+    <li>
+        <a href="http://thx.alibaba-inc.com" target="_blank" class="entry">
+          更多THX前端工具
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/canvax/canvax" target="_blank" class="entry">
+          <i class="iconfont">&#61464;</i> Github
+        </a>
+    </li>
+    <li>
+        <a href="/canvax/doc.html" target="_blank" class="entry">
+          文档
+        </a>
+    </li>
+    <!--
+    <li>
+        <a href="./example.html" target="_blank" class="entry">
+          实例中心
+        </a>
+        </li>
+    -->
+    <li>
+        <a href="/canvax/started.html" target="_blank" class="entry">
+          5分钟入门
+        </a>
+    </li>
+    </ul>
+  </div>
+</div>
+
+  <script src="http://g.tbcdn.cn/??kissy/k/1.4.0/seed-min.js,thx/brix-core/3.4.6/brix-min.js"></script>
+
+<script src="/canvax/assets/post.js"></script>
+
+
+</body>
+</html>

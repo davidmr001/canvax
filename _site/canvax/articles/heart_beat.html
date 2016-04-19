@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name ="viewport" content ="initial-scale=1, maximum-scale=3, minimum-scale=1, minimal-ui">
+  <meta name="apple-mobile-web-app-title" content="THX">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <meta name="description" content="" /> <!-- 页面描述 -->
+  <meta name="keywords" content=""/> <!-- 页面关键词 -->
+
+  <title>Canvax中的心跳包主动渲染机制 -  THX</title>
+<link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/thx/cube/1.2.0/??cube.css,type.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/syntax/github.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/base.css">
+
+</head>
+<body bx-app class="skin-canvax ">
+  
+
+<div id="page">
+  
+
+<div class="settings">
+<!-- 文字大小 begin -->
+    <label class="type-set-label set-first set-font-small" data-font-size="small" title="较小">
+        <span class="bd">
+            <span class="set-title">较小</span><span class="set-icon set-font-small">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="middle" title="默认">
+        <span class="bd">
+            <span class="set-title">默认</span><span class="set-icon set-font-middle">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="large" title="较大">
+        <span class="bd">
+            <span class="set-title">较大</span><span class="set-icon set-font-large">A</span>
+        </span>
+    </label>
+<!-- 文字大小 end -->
+
+<!-- 昼夜模式 begin -->
+    <label class="type-set-label set-last set-night" data-class="night" title="夜晚模式">
+        <span class="bd">
+            <span class="set-title">夜晚模式</span><i class="set-icon iconfont">&#452;</i>
+        </span>
+    </label>
+<!-- 昼夜模式 end -->
+</div>
+  <div id="content">
+    <div id="content-wrap">
+      <script type="text/x-template" id="J_tocTpl">
+
+<div class="stoc type-toc">
+  <label id="J_tocToggler"><h2><i class="iconfont">&#390;</i>目录</h2></label>
+  {{#each tree}}
+    <ol>
+    {{#each children}}
+      <li class="folded"><a href="#{{id}}" class="j-entry level2">{{text}}</a>
+        {{#if children.length !== 0}}
+        <ol>
+        {{#each children}}
+          <li><a href="#{{id}}" class="j-entry level3">{{text}}</a>
+        {{/each}}
+        </ol>
+        {{/if}}
+      </li>
+    {{/each}}
+    </ol>
+  {{/each}}
+</div>
+
+</script>
+<div id="stoc" bx-name="mosaics/stoc" bx-tpl="#J_tocTpl" bx-config="{ essay: 'article' }"></div>
+
+      <article class="type">
+        <h1>Canvax中的心跳包主动渲染机制</h1>
+        <div class="authors">
+          
+        </div>
+        <h2 id="心跳包机制的由来">心跳包机制的由来</h2><p>当画布上面的所有元素都有对应的对象树来持有结构的时候，接下来马上面临的一个问题就是对象树上面的任一节点有变动的时候如何把最新的画面重新绘制出来的问题。</p>
+<p>canvas和svg最大的不一样的地方就是svg已经是以xml的格式在浏览器中渲染，其对象样式的变动都会由浏览器自动渲染出来，而canvax中的每个对象都是虚拟树中的节点，比如 bird.context.x=100 这样一只鸟的x到了100这个位置，这个仅仅是虚拟树中的这个对象的x属性变了，如果需要画面中的真实的鸟也移动到了这个位置，我们需要把整个画布全部clear掉重新绘制所有对象的最新状态（所有的二维动画其实都是不停的clear重绘，浏览器内部绘制svg应该也是这么个过程，就像我们以前看过的胶片电影）</p>
+<p><img src="./assets/ani.png" style="width:500px;" /></p>
+<p>如上面图中描述的过程一样，会呈现这个动画过程，就需要在四张胶片上面清空画布重新画上这个猴子的四个不同的状态。</p>
+<p>那么，cavnas的这个clear-重绘-clear的过程，目前业内的canvas渲染框架以游戏引擎为代表的都是采用mainloop的渲染机制，mainloop的方案就是用一个定时器，按照固定的帧率不停的把画布clear然后重新绘制。</p>
+<p>这是种简单粗暴但是又是有效的方案。</p>
+<p><img src="./assets/cubao.png" style="width:500px;" /></p>
+<p>在游戏引擎里，这个无疑是唯一的选择，但是，在图表为代表的低频渲染场景中，我们真的需要用这么重的方案么？因为在图表这样的场景中，很多的时候，画布其实是处于静止状态的，当你和图表有交互的时候或者后台有新的数据push过来（比如股票系统）才需要重新绘制整个画布。</p>
+<p>于是我们在寻找一种最合适图表这样低频场景的渲染方案。</p>
+<p>技术方案的选型，真的有点像找对象，在合适的时候合适的场景找到合适的人。</p>
+<p>从前面文章《Canvax中抽象的对象树》的DisplayObject介绍中，我们会发现，Canvax中所有和样式有关的属性我们都存放在了DisplayObject.context中，比如一只鸟，<code>bird.context.x</code> <code>bird.context.y</code> <code>bird.context.fillStyle</code>
+    <code>bird.context.strokeStyle</code>等，而且所有的这些属性都是确定的预设好了的。</p>
+<p>这个时候如果我们把每个DisplayObject的context属性用defineProperty来使它具备get，set的能力，这样，任何一个DisplayObject.context的属性变化都可以主动上报到引擎，引擎可以精确的知道哪些元素的哪些属性有了变化，而不用盲目的不管有没有元素有属性变化而采用mainloop不管三七二十一的不停渲染来的划算啊。</p>
+<p>而且，引擎每次渲染的时候都已经收集到了所有有属性变动的元素和属性信息，在后续，如果要在这个基础上做”脏矩形“(<a href="http://orientye.com/2d-dirtyrect/" target="_blank">什么是脏矩形？</a>)优化的时候，有着天然的优势就是所有的脏数据已经有了，而不需要去做脏数据过滤对比。</p>
+<p>顺便说个题外话，Canvax是完全兼容标准浏览器和ie8及以下哪些不支持canvas以及defineProperty特性的浏览器的，其中对canvas的补丁用的是<a href="">flashCanvas</a>会在ie8-浏览器中自动输出flash格式来绘制，而对defineProperty的补丁，则吸取的是司徒正美的mvvm框架<a href="https://avalonjs.github.io/">avalon</a>中的vbs解决方案。</p>
+<h2 id="canvax中的实现方案">Canvax中的实现方案</h2><p>所以我们的渲染方案是下面这个样子</p>
+<p><img src="./assets/heart_beat.png" style="width:500px;" /></p>
+<p>这个方案的实现主要涉及到Canvax中的&quot;canvax/core/propertyFactory&quot;,&quot;canvax/display/DisplayObject&quot;,&quot;canvax/display/Stage&quot;,&quot;canvax/index&quot;四个模块。</p>
+<h3 id="定义好需要的属性到context">定义好需要的属性到context</h3><p>我们先从&quot;canvax/display/DisplayObject&quot;开始，在模块中有一个_createContext函数，这个函数就是用来聚合所有的context属性然后调用&quot;canvax/core/propertyFactory&quot;来构造一个具备get，set能力的读取器，这个聚合context属性的过程分两步，首先，定义一个_contextATTRS对象包含了目前用到了的所有canvas.context2d的属性，和canvax中自己定义的一些基本属性，x,y,width,height之类的，然后从用户传入的option.context做一次merge合并。</p>
+<div class="highlight"><pre><code class="javascript"><span class="keyword">var</span> _contextATTRS = Base.copy( {
+    width         : <span class="number">0</span>,
+    height        : <span class="number">0</span>,
+    x             : <span class="number">0</span>,
+    y             : <span class="number">0</span>,
+    scaleX        : <span class="number">1</span>,
+    scaleY        : <span class="number">1</span>,
+    scaleOrigin   : {
+        x : <span class="number">0</span>,
+        y : <span class="number">0</span>
+    },
+    rotation      : <span class="number">0</span>,
+    rotateOrigin  :  {
+        x : <span class="number">0</span>,
+        y : <span class="number">0</span>
+    },
+    visible       : <span class="literal">true</span>,
+    cursor        : <span class="string">"default"</span>,
+
+    <span class="comment">//canvas context 2d 的 系统样式。目前用到的就这么多</span>
+    fillStyle     : <span class="literal">null</span>,<span class="comment">//"#000000",</span>
+    lineCap       : <span class="literal">null</span>,
+    lineJoin      : <span class="literal">null</span>,
+    lineWidth     : <span class="literal">null</span>,
+    miterLimit    : <span class="literal">null</span>,
+    shadowBlur    : <span class="literal">null</span>,
+    shadowColor   : <span class="literal">null</span>,
+    shadowOffsetX : <span class="literal">null</span>,
+    shadowOffsetY : <span class="literal">null</span>,
+    strokeStyle   : <span class="literal">null</span>,
+    globalAlpha   : <span class="number">1</span>,
+    font          : <span class="literal">null</span>,
+    textAlign     : <span class="string">"left"</span>,
+    textBaseline  : <span class="string">"top"</span>, 
+    arcScaleX_    : <span class="literal">null</span>,
+    arcScaleY_    : <span class="literal">null</span>,
+    lineScale_    : <span class="literal">null</span>,
+    globalCompositeOperation : <span class="literal">null</span>
+} , opt.context , <span class="literal">true</span> );</code></pre></div><p>然后，context的内容肯定不应该只有这么多，不同类型的元素都有一些自己特殊的属性，比如Circle圆，有个半径r属性是它特有的，也需要有通道加入到这个context里面来，所以我们会在后续所有需要一些自己特有属性的模块中定义一个_context。然后extend到_contextATTRS中。</p>
+<div class="highlight"><pre><code class="javascript"><span class="comment">//然后看继承者是否有提供_context 对象 需要 我 merge到_context2D_context中去的</span>
+<span class="keyword">if</span> (self._context) {
+    _contextATTRS = _.extend(_contextATTRS , self._context );
+}</code></pre></div><p>好了，最后在_contextATTRS中定义一个watch。</p>
+<div class="highlight"><pre><code class="javascript">_contextATTRS.$watch = <span class="function"><span class="keyword">function</span><span class="params">(name , value , preValue)</span>{</span>
+    <span class="comment">//所有的context属性的变化都会走这里，这里会把所有属性的变动上报给到它的stage</span>
+    <span class="keyword">this</span>.$owner.heartBeat( {
+        convertType:<span class="string">"context"</span>,
+        shape      : <span class="keyword">this</span>.$owner,
+        name       : name,
+        value      : value,
+        preValue   : preValue
+    });
+}</code></pre></div><p>最后，_contextATTRS中聚合好了所有的属性后，就需要把它调用&quot;canvax/core/propertyFactory&quot;来处理为具备get,set能力的读取器了。</p>
+<div class="highlight"><pre><code class="javascript">self.context = PropertyFactory( _contextATTRS );</code></pre></div><h3 id="stage收集到心跳上报到canvax">Stage收集到心跳上报到Canvax</h3><p>其实Stage中做的事情不多，</p>
+<div class="highlight"><pre><code class="javascript">heartBeat : <span class="function"><span class="keyword">function</span><span class="params">( opt )</span>{</span>
+    <span class="comment">//shape , name , value , preValue </span>
+    <span class="comment">//displayList中某个属性改变了</span>
+    <span class="keyword">if</span> (!<span class="keyword">this</span>._isReady) {
+       <span class="comment">//在stage还没初始化完毕的情况下，无需做任何处理</span>
+       <span class="keyword">return</span>;
+    };
+    opt || ( opt = {} ); <span class="comment">//如果opt为空，说明就是无条件刷新</span>
+    opt.stage   = <span class="keyword">this</span>;
+
+    <span class="comment">//TODO临时先这么处理, this.parent就是Canvax</span>
+    <span class="keyword">this</span>.parent &amp;&amp; <span class="keyword">this</span>.parent.heartBeat(opt);
+}</code></pre></div><h3 id="canvax收集所有心跳数据，组织渲染">Canvax收集所有心跳数据，组织渲染</h3><p>Canvax有一个convertStages属性，是通过heartBeat方法记录收集到的心跳信息里分析出来的哪些stage中有哪些属性有变动的信息，在下一帧渲染的时候，只会渲染convertStages中有记录的stage。</p>
+<p>同时heartBeat方法还有做一件很有意义的事情，就是判断当前渲染状态，如果当前项目正处于静默状态（比如折线图渲染完毕后，画面静止了），就会唤醒引擎告你引擎有活干了，该起床了，然后往requestAnimationFrame注册一帧，如果发现引擎已经起床了在准备干活了，那么就继续收集还会有哪些心跳包进来，分析好后添加对应的信息到convertStages中。</p>
+<div class="highlight"><pre><code class="javascript"><span class="keyword">if</span> (!self._heartBeat){
+   <span class="comment">//如果发现引擎在静默状态，那么就唤醒引擎</span>
+   self._heartBeat = <span class="literal">true</span>;
+   self.__startEnter();
+} <span class="keyword">else</span> {
+   <span class="comment">//否则智慧继续确认心跳</span>
+   self._heartBeat = <span class="literal">true</span>;
+}</code></pre></div><p>---广告分割线---</p>
+<p>阿里妈妈开源图表库Chartx <a href="http://thx.github.io/chartx/"><a href="http://thx.github.io/chartx/">http://thx.github.io/chartx/</a></a> ，求star</p>
+
+      </article>
+      <!-- Duoshuo Comment BEGIN -->
+
+<div class="ds-thread" data-thread-key="/canvax" data-url="http://thx.alibaba-inc.com/canvax" data-limit="10"></div>
+<!-- Duoshuo Comment END -->
+      <div id="footer">
+  <address><a href="http://ued.alimama.com">MUX</a> &copy; 2014</address>
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan class='cnzz' id='cnzz_stat_icon_1000167811'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/z_stat.php%3Fid%3D1000167811%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</div>
+    </div>
+  </div>
+  <div id="nav">
+    <a href="javascript:void(0)" class="toggler" id="J_toggler">
+      <i class="iconfont">&#271;</i>
+      <span class="label">导航</span>
+    </a>
+    <h1 class="logo"><a href="http://thx.github.io/canvax">
+       <i class="iconlogo dib">&#xe600;</i>
+       <span class="logo-text dib">Canvax</span>
+    </h1>
+    <ul class="menu">
+    
+
+    <li>
+        <a href="http://thx.alibaba-inc.com" target="_blank" class="entry">
+          更多THX前端工具
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/canvax/canvax" target="_blank" class="entry">
+          <i class="iconfont">&#61464;</i> Github
+        </a>
+    </li>
+    <li>
+        <a href="/canvax/doc.html" target="_blank" class="entry">
+          文档
+        </a>
+    </li>
+    <!--
+    <li>
+        <a href="./example.html" target="_blank" class="entry">
+          实例中心
+        </a>
+        </li>
+    -->
+    <li>
+        <a href="/canvax/started.html" target="_blank" class="entry">
+          5分钟入门
+        </a>
+    </li>
+    </ul>
+  </div>
+</div>
+
+  <script src="http://g.tbcdn.cn/??kissy/k/1.4.0/seed-min.js,thx/brix-core/3.4.6/brix-min.js"></script>
+
+<script src="/canvax/assets/post.js"></script>
+
+
+</body>
+</html>

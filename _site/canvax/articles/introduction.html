@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name ="viewport" content ="initial-scale=1, maximum-scale=3, minimum-scale=1, minimal-ui">
+  <meta name="apple-mobile-web-app-title" content="THX">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <meta name="description" content="" /> <!-- 页面描述 -->
+  <meta name="keywords" content=""/> <!-- 页面关键词 -->
+
+  <title>Canvax 前言--我们为什么出发 -  THX</title>
+<link rel="stylesheet" type="text/css" href="http://g.tbcdn.cn/thx/cube/1.2.0/??cube.css,type.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/syntax/github.css">
+<link rel="stylesheet" type="text/css" href="/canvax/assets/base.css">
+
+</head>
+<body bx-app class="skin-canvax ">
+  
+
+<div id="page">
+  
+
+<div class="settings">
+<!-- 文字大小 begin -->
+    <label class="type-set-label set-first set-font-small" data-font-size="small" title="较小">
+        <span class="bd">
+            <span class="set-title">较小</span><span class="set-icon set-font-small">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="middle" title="默认">
+        <span class="bd">
+            <span class="set-title">默认</span><span class="set-icon set-font-middle">A</span>
+        </span>
+    </label>
+    <label class="type-set-label" data-font-size="large" title="较大">
+        <span class="bd">
+            <span class="set-title">较大</span><span class="set-icon set-font-large">A</span>
+        </span>
+    </label>
+<!-- 文字大小 end -->
+
+<!-- 昼夜模式 begin -->
+    <label class="type-set-label set-last set-night" data-class="night" title="夜晚模式">
+        <span class="bd">
+            <span class="set-title">夜晚模式</span><i class="set-icon iconfont">&#452;</i>
+        </span>
+    </label>
+<!-- 昼夜模式 end -->
+</div>
+  <div id="content">
+    <div id="content-wrap">
+      <script type="text/x-template" id="J_tocTpl">
+
+<div class="stoc type-toc">
+  <label id="J_tocToggler"><h2><i class="iconfont">&#390;</i>目录</h2></label>
+  {{#each tree}}
+    <ol>
+    {{#each children}}
+      <li class="folded"><a href="#{{id}}" class="j-entry level2">{{text}}</a>
+        {{#if children.length !== 0}}
+        <ol>
+        {{#each children}}
+          <li><a href="#{{id}}" class="j-entry level3">{{text}}</a>
+        {{/each}}
+        </ol>
+        {{/if}}
+      </li>
+    {{/each}}
+    </ol>
+  {{/each}}
+</div>
+
+</script>
+<div id="stoc" bx-name="mosaics/stoc" bx-tpl="#J_tocTpl" bx-config="{ essay: 'article' }"></div>
+
+      <article class="type">
+        <h1>Canvax 前言--我们为什么出发</h1>
+        <div class="authors">
+          
+        </div>
+        <h2 id="前言">前言</h2><p>要怎么样学习Canvas？</p>
+<p>当你看完Canvas的api后你会发现传说中很强大的Canvas其实api不多，同时，平时dom开发中你经常用到的一些东西居然从头到尾没有找到。最基本的，绘制完一个元素后，回过头不知道该这么找到这个元素，然后我还想给它添加个click事件呢该怎么办？因为dom开发中这些都是在平常不过的了，甚至svg都很方便的完成这些事情。</p>
+<p>习惯了dom世界的前端开发者会有困惑，我懂！</p>
+<p>这些并不妨碍Canvas依然如传说中那样的强大，甚至我觉得Canvas的这些牺牲换来的正是换来他的强大的原因，做为一套较为底层的绘图接口，给开发者提供了更加灵活的使用方式。</p>
+<p>Canvas本身api不多，也不难，这里就不做详细介绍，推荐一个不错的文档 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API"><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API">https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API</a></a>。</p>
+<p>然而面对这简洁而不简单的绘图接口困惑的原因是在熟悉的生产环境中不知道这么去应用。所以，个人觉得学习Canvas最好的方式是大概的看下Canvas的api文档后，需要看一个具体的Canvas应用实例，这个系列blog会以Canvas渲染引擎《Canvax》为Canvas使用实例，通过分享整个实现过程和技术点，来让刚学Canvas和准备学习Canvas的同学了解怎么样来使用Canvas。</p>
+<p>废话有点多，那么先介绍下Canvax是什么？</p>
+<h2 id="canvax是什么">Canvax是什么</h2><p>Canvax是一套基于Canvas的渲染引擎，做为阿里妈妈图表库<a href="http://thx.github.io/chartx">Chartx</a>的底层依赖。有类似as3的对象树结构，在不兼容Canvas的浏览器中比如 ie9- 则采用<a href="http://flashCanvas.net/">flashCanvas</a>自动输出为flash格式，事件系统兼容了pc的mobile，pc端有实现拖拽，点击，双击，mouseover,mouseout,mousemove，mobile端则兼容了<a href="http://hammerjs.github.io/">hummer.js</a>的全部手势...... 接下来会一一详细道来。</p>
+<p><a href="https://github.com/canvax/canvax"><a href="https://github.com/canvax/canvax">https://github.com/canvax/canvax</a></a>，欢迎star</p>
+<p>那么，问题来了，我们为什么开发Canvax?</p>
+<h2 id="为什么开发canvax">为什么开发Canvax</h2><p>每个工具或者框架，必然有着其特定的使命和初衷，我们决定采用cavnas来实现一套数据可视化工具库，就如上面有说到那样，原生canvas在生产环境中会有诸多不够方便的地方，所以，我们决定分两步走，先开发一套足够方便开发canvas的渲染引擎，然后在这个基础上继续搭建数据可视化工具库。</p>
+<p>如果你这个时候问我那为什么不选择原生兼容dom的svg呢，那这个聊天就没法继续了，技术没有好坏，技术的选型我个人觉得就像搞对象，合适的场景，合适的时间发现合适的解决方案，就对了。我觉得在图表这样的场景中，还是canvas会比较适合。</p>
+<h2 id="canvas的开发现状">canvas的开发现状</h2><p>我们还是继续回来说说开发Canvax的原因，这主要要从我们现在原生canvas的开发现状说起。</p>
+<p>我们面对原生canvas开发，其不便主要集中在下面几点：</p>
+<p>1，无状态（绘制的任何元素都不会以对象的方式持有存储）。</p>
+<p>2，没有对于canvas上面元素的点击检测 。（绘制的元素都没有结构化的持有，检查啥呢？）</p>
+<p>3，因为1和2的原因所以更加没有元素的事件侦听处理。</p>
+<p>4，需要手工渲染</p>
+<p>这，这简直就是石器时代啊有木有！</p>
+<p><img style="width:300px;" src="assets/shiqi.png" /></p>
+<h2 id="canvax的使命">Canvax的使命</h2><p>那么Canvax的使命是：</p>
+<p><img src="assets/shimin.png" style="width:300px"></p>
+<p>针对惨不忍睹的现状，提供对应的解决方案：</p>
+<p>1，把所有的元素对象抽象化状态 记录保持。(可以在canvas里面像操作dom一样的使用了，小激动有么有)</p>
+<p>2，提供简单的点和这些元素的碰撞检测。（因为对象毕竟是抽象在内存里的，浏览器不会给你的这些抽象元素提供点击检测，所以，要靠自己）</p>
+<p>3，建立个简单的事件系统和dom的事件系统对接，完成在元素上的事件分发，覆盖pc 和 mobile （同上，得靠自己）</p>
+<p>4，实现一个最合适图表应用场景的渲染方案 （抽象的对象树，你删除了一个元素或者移动了一个元素，canvas是不知道的。所以需要实现一个渲染方案）</p>
+<p>好了，我们根据上面的要解决的事情列表，一一道来。</p>
+<p>首先，请看下一篇<a href="treemap.html">Canvax中对象树的实现</a>！</p>
+<p>---广告分割线---</p>
+<p>阿里妈妈开源图表库Chartx <a href="http://thx.github.io/chartx/"><a href="http://thx.github.io/chartx/">http://thx.github.io/chartx/</a></a> ，求star</p>
+
+      </article>
+      <!-- Duoshuo Comment BEGIN -->
+
+<div class="ds-thread" data-thread-key="/canvax/articles/introduction.md" data-url="http://thx.alibaba-inc.com/canvax/articles/introduction.md" data-limit="10"></div>
+<!-- Duoshuo Comment END -->
+      <div id="footer">
+  <address><a href="http://ued.alimama.com">MUX</a> &copy; 2014</address>
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan class='cnzz' id='cnzz_stat_icon_1000167811'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/z_stat.php%3Fid%3D1000167811%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</div>
+    </div>
+  </div>
+  <div id="nav">
+    <a href="javascript:void(0)" class="toggler" id="J_toggler">
+      <i class="iconfont">&#271;</i>
+      <span class="label">导航</span>
+    </a>
+    <h1 class="logo"><a href="http://thx.github.io/canvax">
+       <i class="iconlogo dib">&#xe600;</i>
+       <span class="logo-text dib">Canvax</span>
+    </h1>
+    <ul class="menu">
+    
+
+    <li>
+        <a href="http://thx.alibaba-inc.com" target="_blank" class="entry">
+          更多THX前端工具
+        </a>
+    </li>
+    <li>
+        <a href="https://github.com/canvax/canvax" target="_blank" class="entry">
+          <i class="iconfont">&#61464;</i> Github
+        </a>
+    </li>
+    <li>
+        <a href="/canvax/doc.html" target="_blank" class="entry">
+          文档
+        </a>
+    </li>
+    <!--
+    <li>
+        <a href="./example.html" target="_blank" class="entry">
+          实例中心
+        </a>
+        </li>
+    -->
+    <li>
+        <a href="/canvax/started.html" target="_blank" class="entry">
+          5分钟入门
+        </a>
+    </li>
+    </ul>
+  </div>
+</div>
+
+  <script src="http://g.tbcdn.cn/??kissy/k/1.4.0/seed-min.js,thx/brix-core/3.4.6/brix-min.js"></script>
+
+<script src="/canvax/assets/post.js"></script>
+
+
+</body>
+</html>
