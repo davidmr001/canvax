@@ -1,4 +1,4 @@
-baseurl: /canvax
+baseurl: /
 markdown: redcarpet
 pygments: true
 safe: true
